@@ -1,0 +1,307 @@
+---
+title: 'Data Analysis: Pokemon, DND, and NYC Gifted Dataset'
+author: "W. Durosier"
+date: "2025-03-09"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+This project is to provide a comprehensive analysis involving data cleaning, transformation, and visualization for three different datasets: Pokémon competitive analysis, Dungeons & Dragons (DND) characters, and NYC Gifted and Talented Grades
+
+# Load packages
+```{r}
+library(readr)
+library(tidyr)
+library(dplyr)
+library(janitor)
+library(tidyverse)
+library(stringr)
+library(readxl)
+library(ggplot2)
+```
+
+## Creating path for the Datasets
+
+
+```{r data} 
+
+white.csv <-("C:\\Users\\wduro\\OneDrive - City University of New York\\DATA607\\pokemon_competitive_analysis.csv")
+
+write_tsv <- ("C:\\Users\\wduro\\OneDrive - City University of New York\\DATA607\\dnd_chars_all.tsv.txt") 
+
+white.csv <- ("C:\\Users\\wduro\\Downloads\\NYC Gifted and Talented Grades 2018-19 - Sheet5.csv")
+
+```
+
+# Readig the data 
+
+The three datasets were loaded into R using read_csv and read_tsv functions.
+Each dataset was read in with its specific file path.
+
+```{r}
+pokemon_data <- read_csv("C:\\Users\\wduro\\OneDrive - City University of New York\\DATA607\\pokemon_competitive_analysis.csv", show_col_types = FALSE)
+
+dnd_data <- read_tsv ("C:\\Users\\wduro\\OneDrive - City University of New York\\DATA607\\dnd_chars_all.tsv.txt", show_col_types = FALSE)
+
+ nyc_gifted_data <- read_csv("C:\\Users\\wduro\\Downloads\\NYC Gifted and Talented Grades 2018-19 - Sheet5.csv", show_col_types = FALSE)
+```
+
+```{r name-duplicate}
+
+colnames(nyc_gifted_data)
+
+colnames(nyc_gifted_data) <- make.names(colnames(nyc_gifted_data), unique = TRUE)
+
+head(nyc_gifted_data)
+
+nyc_gifted_data <- nyc_gifted_data[!duplicated(colnames(nyc_gifted_data))]
+```
+
+```{r datasets}
+
+head(pokemon_data)
+
+head(dnd_data)
+
+head(nyc_gifted_data)
+
+```
+## Inspecting and Cleaning the Data:
+
+
+Pokemon Dataset:
+Missing values were handled using drop_na().
+Created a new variable total_stats as a sum of multiple existing statistics.
+
+# Check column names and missing values for pokemon_data
+
+```{r}
+
+colnames(pokemon_data)
+missing_pokemon <- colSums(is.na(pokemon_data))
+missing_pokemon
+
+```
+## Handdling missing Values
+
+#Dropping rows with missing values to disply simplysity,then checking the data cleanliness.
+```{r data-pokemon}
+
+pokemon_data_cleaned <- pokemon_data %>%
+  drop_na()
+
+head(pokemon_data_cleaned)
+
+```
+# cleaning the datasets
+
+```{r clean-pokemon}
+
+pokemon_data_cleaned <- pokemon_data %>%
+  drop_na()
+
+
+head(pokemon_data_cleaned)
+
+```
+
+#DND Dataset:
+
+Checked for missing values and removed rows with NAs.
+```{r}
+
+colnames(dnd_data)
+missing_dnd <- colSums(is.na(dnd_data))
+missing_dnd
+
+```
+```{r}
+
+dnd_data_cleaned <- dnd_data %>%
+  drop_na()
+
+
+head(dnd_data_cleaned)
+
+```
+
+#NYC Gifted Dataset:
+
+Converted the Entering Grade Level column into a factor variable and dropped any rows with missing values.
+Used pivot_longer to reshape the dataset for better analysis, especially for the school type-related columns.
+
+```{r}
+
+colnames(nyc_gifted_data)
+missing_nyc <- colSums(is.na(nyc_gifted_data))
+missing_nyc
+
+```
+
+
+```{r}
+
+nyc_gifted_data_cleaned <- nyc_gifted_data %>%
+  drop_na() %>%
+  mutate(grade = as.factor(`Entering.Grade.Level`))  
+
+
+head(nyc_gifted_data_cleaned)
+
+```
+
+
+# Pivoting the data to Check the transformed long format
+
+
+```{r}
+
+nyc_long_data <- nyc_gifted_data_cleaned %>%
+  pivot_longer(cols = starts_with("School"), 
+               names_to = "school_type", 
+               values_to = "school_value")
+
+
+head(nyc_long_data)
+
+```
+
+
+# New column
+
+Check the new data set for new column created
+
+
+```{r}
+
+pokemon_data_cleaned <- pokemon_data_cleaned %>%
+  mutate(total_stats = attack + defense + speed + sp_atk + sp_def)
+
+
+head(pokemon_data_cleaned)
+
+```
+
+# Summary statistics
+
+ for NYC Gifted data, Pokemon data,  DND data, basic summary statistics were generated using the summary() function.
+
+```{r}
+
+summary(nyc_gifted_data_cleaned)
+
+
+summary(pokemon_data_cleaned)
+
+
+summary(dnd_data_cleaned)
+
+```
+
+## Visualizations:
+
+#Pokemon Dataset:
+
+A histogram was plotted to show the distribution of the total_stats variable.
+
+```{r}
+ggplot(pokemon_data_cleaned, aes(x = total_stats)) +
+  geom_histogram(binwidth = 10, fill = "orange", color = "black", alpha = 0.7) +
+  labs(title = "Distribution of Total Stats for Pokémon", 
+       x = "Total Stats", 
+       y = "Frequency") +
+  theme_minimal()
+
+```
+
+
+
+# Saving the cleaned data
+
+The cleaned datasets were saved into new CSV files for further use or sharing
+
+```{r}
+
+write_csv(pokemon_data_cleaned, "C:\\Users\\wduro\\OneDrive - City University of New York\\DATA607\\pokemon_data_cleaned.csv")
+
+write_csv(nyc_gifted_data_cleaned, "C:\\Users\\wduro\\OneDrive - City University of New York\\DATA607\\nyc_gifted_data_cleaned.csv")
+
+write_csv(dnd_data_cleaned, "C:\\Users\\wduro\\OneDrive - City University of New York\\DATA607\\dnd_data_cleaned.csv")
+
+```
+
+#Accesing cleaned data to analyze
+
+```{r}
+pokemon_data <- read_csv ("C:\\Users\\wduro\\OneDrive - City University of New York\\DATA607\\pokemon_data_cleaned.csv")
+
+head(pokemon_data)
+```
+
+```{r}
+nyc_gifted_data <- read_csv ("C:\\Users\\wduro\\OneDrive - City University of New York\\DATA607\\nyc_gifted_data_cleaned.csv")
+
+head(nyc_gifted_data)
+```
+
+
+```{r}
+dnd_data <- read_csv("C:\\Users\\wduro\\OneDrive - City University of New York\\DATA607\\dnd_data_cleaned.csv")
+
+head(dnd_data)
+```
+# Data Cleaning and Transformation:
+ Ensuring data are tidy and transformed.
+ 
+ 
+# Tidy the Pokemon dataset
+```{r}
+
+pokemon_data_cleaned <- pokemon_data %>%
+  drop_na() %>% 
+  mutate(total_stats = attack + defense + speed + sp_atk + sp_def)
+
+
+head(pokemon_data_cleaned)
+
+```
+# DND Dataset
+We'll check for missing values and remove rows with NA. Additionally, we can transform the dataset (e.g., for specific character attributes).
+```{r}
+dnd_data_cleaned <- dnd_data %>%
+  drop_na()
+
+head(dnd_data_cleaned)
+```
+
+# NYC Gifted Dataset
+We'll ensure that the Entering Grade Level column is properly converted to a factor and handle any other transformations needed.
+
+```{r}
+nyc_gifted_data_cleaned <- nyc_gifted_data %>%
+  drop_na() %>%
+  mutate(grade = as.factor(`Entering.Grade.Level`))
+
+head(nyc_gifted_data_cleaned)
+```
+
+
+
+## Conclusion, 
+In this following project the goal was to transform and cleaned three data sets.
+The project involved data cleaning, handling missing values, transforming variables, and performing some basic analysis and visualizations. The datasets were saved for future reference and additional analysis.
+
+#Key Learnings:
+
+Data Cleaning: You handled missing data, standardized column names, and reshaped data for easier analysis.
+
+Transformation: You created new variables (e.g., total_stats) to enhance the analysis.
+
+Visualizations: You generated clear and effective visualizations, particularly for the Pokémon dataset, to understand the distribution of key variables.
+
+Tidy Data Principles: You applied key tidying techniques to ensure your datasets were in a "long" format when needed.
+
